@@ -1,14 +1,19 @@
 {
   "name": "Pátio de Carvão",
   "short_name": "Carvão",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f4f4f4",
+  "background_color": "#1f8f4a",
   "theme_color": "#1f8f4a",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "img/câmera_térmica-192.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "img/câmera_térmica-512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
