@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pátio de Carvão</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f8f4a">
+
+<!-- FAVICON -->
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+
+<style>
+body {
+    font-family: Arial;
+    margin: 0;
+    padding: 0;
+    background: #f4f4f4;
+}
+header {
+    background: #1f8f4a;
+    color: white;
+    padding: 15px;
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
+}
+.container {
+    padding: 15px;
+}
+.sector {
+    background: white;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,.1);
+}
+.sector h2 {
+    margin: 0 0 10px 0;
+    color: #1f8f4a;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 6px;
+    text-align: left;
+}
+td input {
+    width: 100%;
+    padding: 7px;
+    font-size: 16px;
+}
+.avg {
+    background: #e8ffe8;
+    padding: 7px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-align: right;
+    color: #0d681f;
+    font-size: 16px;
+}
+button {
+    width: 100%;
+    padding: 15px;
+    background: #1f8f4a;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    margin-top: 10px;
+}
+#reset {
+    background: #999;
+}
+#save {
+    background: #0d681f;
+}
+</style>
+</head>
+
+<body>
+<header>Pátio de Carvão – Leitura Rápida</header>
+
+<div class="container">
+    <div id="app"></div>
+    <button id="save">💾 Salvar Dados</button>
+    <button id="reset">Limpar Tudo</button>
+</div>
+
+<script>
+const setores = ["PÁTIO EXTERNO", "PÁTIO COBERTO"];
+const pontos = ["PONTO 01", "PONTO 02", "PONTO 03", "PONTO 04"];
+
+function criarApp() {
+    let html = "";
+    setores.forEach((setor, s) => {
+        html += `
+        <div class='sector'>
+            <h2>${setor}</h2>
+            <table>
+                <tr>
+                    <th>Ponto</th>
+                    <th>Topo</th>
+                    <th>Médio</th>
+                    <th>Base</th>
+                    <th>Média</th>
+                </tr>`;
+        pontos.forEach((p, i) => {
+            html += `
+            <tr>
+                <td>${p}</td>
+                <td><input data-s='${s}' data-i='${i}' class='topo'></td>
+                <td><input data-s='${s}' data-i='${i}' class='medio'></td>
+                <td><input data-s='${s}' data-i='${i}' class='base'></td>
+                <td><div class='avg' id='avg-${s}-${i}'>0,0</div></td>
+            </tr>`;
+        });
+        html += "</table></div>";
+    });
+
+    document.getElementById("app").innerHTML = html;
+}
+
+function calc() {
+    document.querySelectorAll(".topo,.medio,.base").forEach(inp => {
+        inp.addEventListener("input", () => {
+            const s = inp.dataset.s;
+            const i = inp.dataset.i;
+
+            const t = parseFloat((document.querySelector(`input.topo[data-s='${s}'][data-i='${i}']`).value || "0").replace(",", "."));
+            const m = parseFloat((document.querySelector(`input.medio[data-s='${s}'][data-i='${i}']`).value || "0").replace(",", "."));
+            const b = parseFloat((document.querySelector(`input.base[data-s='${s}'][data-i='${i}']`).value || "0").replace(",", "."));
+
+            const avg = (t + m + b) / 3;
+            document.getElementById(`avg-${s}-${i}`).textContent = avg.toFixed(1).replace(".", ",");
+        });
+    });
+}
+
+// 💾 SALVAR
+document.getElementById("save").addEventListener("click", () => {
+    let dados = {};
+    document.querySelectorAll("input").forEach(input => {
+        dados[input.dataset.s + "-" + input.dataset.i + "-" + input.className] = input.value;
+    });
+    localStorage.setItem("dadosCarvao", JSON.stringify(dados));
+    alert("Dados salvos com sucesso!");
+});
+
+// 🔄 CARREGAR
+function carregarDados() {
+    let dados = JSON.parse(localStorage.getItem("dadosCarvao") || "{}");
+    document.querySelectorAll("input").forEach(input => {
+        let chave = input.dataset.s + "-" + input.dataset.i + "-" + input.className;
+        if (dados[chave]) input.value = dados[chave];
+    });
+}
+
+// 🔄 LIMPAR
+document.getElementById("reset").addEventListener("click", () => {
+    localStorage.removeItem("dadosCarvao");
+    location.reload();
+});
+
+// 🚀 INICIAR
+criarApp();
+calc();
+carregarDados();
+
+// 📲 Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+
+</body>
+</html>
